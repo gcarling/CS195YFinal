@@ -6,7 +6,6 @@ sig Tree {
     lefts, rights: nodes -> lone nodes
 } {
 	some nodes implies some root
-	all n : nodes | this in n.trees
 }
 
 run {some Tree} for 3 but 1 Tree
@@ -19,13 +18,7 @@ fact allNodesInSomeTree {
 
 
 sig Node {
-  trees: set Tree,	
-  num: Int,
-  left: set Node,
-  right: set Node
-} {
-	left = trees.lefts[this] and
-	right = trees.rights[this]
+	num: Int
 }
 
 
@@ -225,7 +218,7 @@ pred testremove {
     	some r.pre.nodes
 	}
 }
-run testremove for exactly 4 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
+run testremove for exactly 6 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
 
 assert removelength {
 	all r: RemoveNode | {
