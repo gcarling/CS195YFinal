@@ -51,9 +51,6 @@ pred isRedBlackTree[tree: Tree] {
 	// root is black
 	no tree.root or tree.root.color in Black
 
-	// all leaves are black
-	//all n : tree.nodes | no n.(tree.lefts + tree.rights) implies n.color in Black
-
 	// if a node is red, its children are black
 	all n : tree.nodes | n.color in Red implies n.(tree.lefts + tree.rights).color in Black
 	
@@ -65,7 +62,7 @@ pred isRedBlackTree[tree: Tree] {
 	all disj p1, p2 : Path | p1.start = p2.start implies getNumBlack[p1] = getNumBlack[p2]
 }
 
-run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 20 Path
+run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 20 Path, 0 Event
 
 assert allPathLengthsGood {
 	all tree : Tree { 
@@ -84,4 +81,4 @@ assert allPathLengthsGood {
 	}
 }
 
-check allPathLengthsGood for 1 Tree, exactly 6 Node, 6 Color, 6 Descent, 0 AddNode
+check allPathLengthsGood for 1 Tree, exactly 5 Node, 5 Color, 6 Descent, 0 AddNode, 6 Path, 0 Event
