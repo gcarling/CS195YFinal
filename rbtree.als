@@ -1,89 +1,87 @@
-abstract sig Node {}
-sig Empty extends Node {}
-sig Data extends Node {
-	num: Int,
-	left: Node,
-    right: Node
+open btree
+
+abstract sig Color {}
+sig Red extends Color {}
+sig Black extends Color {}
+
+sig RBNode extends Node {
+	color: Color 
 }
 
-pred btree {
-	// root reaches everything
-  some r: Node |
-		Node in r.^(left + right) + r
-
-  all n: Node | {
-	  // no cycles
-		n not in n.^(left+right) 
-    // at most one parent for each node
-		lone n.~(left+right)
-    
-    // distinct children if any
-		//n.left != n.right // fails if using no left/right instead of Empty (Wed)
-    no n.left & n.right
-  }
-}
-
-run btree for exactly 3 Data, 4 Empty
-
-pred orderedtree {
-	btree
-
-   // * is REFLEXIVE transitive closure 
-  all n: Node, n': n.left.*(left+right) - Empty | {
-    n.num > n'.num
-  }
-
-  all n: Node, n': n.right.*(left+right) - Empty | {
-    n.num < n'.num
-  }
-}
-
-run orderedtree for exactly 7 Node
-
--------------------------
-
-// A descent is a search path down the tree. 
-// Model in a way similar to how we'd implement the search
-lone sig Descent {
-  val: Int,
-  path: seq Node
+sig Path {
+	t: Tree,
+	start: Node,
+	end: Node,
+	path: seq Node
 } {
-  // start at root
-  no path[0].~(left+right)
-  // actually do something
-  not path.isEmpty
-
-  // search until done
-  path.last in Empty or path.last.num = val
-  path.last in Empty implies val not in path.elems.num
-
-  // ? do we need this?
-  all idx: path.inds - path.lastIdx |
-		path[idx].num != val
-
-  // move down in correct direction
+	// start at start, end at end
+	path[0] = start
+	path.last = end
+	
+  // if move down, go in correct direction
   all idx: path.inds - path.lastIdx | {
     let idx' = add[idx, 1] | {
-      path[idx].num > val implies path[idx'] = path[idx].left
-	    path[idx].num < val implies path[idx'] = path[idx].right
+      path[idx].num > end.num implies path[idx'] in t.lefts[path[idx]]
+	  path[idx].num < end.num implies path[idx'] in t.rights[path[idx]]
+	  path[idx].num = end.num implies no path[idx']
     }
   }  
+	
 }
 
-run orderedtree for exactly 1 Descent, exactly 7 Node
-
-// A descent models a search path through the tree.
-// Check to make sure that searching binary trees works!
-assert findifthere {
-	all d: Descent |
-		orderedtree implies {
-			(d.val in Node.num =>
-       d.path.last.num = d.val else
-       d.path.last.num != d.val
-      )
-    }
+fun getReachableLeaves[n : Node, tree: Tree]: set Node {
+	// get reachable nodes, intersect with nodes that have no left + nodes that have no right
+	n.*(tree.lefts + tree.rights) & ((tree.nodes - tree.lefts.(tree.nodes)) + (tree.nodes - tree.rights.(tree.nodes)))
 }
 
-// If this succeeds, any implementation that matches our Descent spec
-// will work (on small trees, anyway)
-check findifthere for exactly 1 Descent, exactly 7 Node
+fun getNumBlack[p : Path]: Int {
+	#(p.path.elems.color & Black)
+}
+
+pred isRedBlackTree[tree: Tree] {
+	// has all the properties of a BST
+	isBSTree[tree]
+
+	// for convenience, we want all nodes to have their own color sig
+	no disj n1, n2 : tree.nodes | n1.color = n2.color
+
+	// all nodes are either red or black
+	all n : tree.nodes | n in RBNode
+
+	// root is black
+	no tree.root or tree.root.color in Black
+
+	// all leaves are black
+	//all n : tree.nodes | no n.(tree.lefts + tree.rights) implies n.color in Black
+
+	// if a node is red, its children are black
+	all n : tree.nodes | n.color in Red implies n.(tree.lefts + tree.rights).color in Black
+	
+	// for every node, there is a path from itself to every leaf that it can reach
+	all startNode : tree.nodes | all endNode : getReachableLeaves[startNode, tree] | {
+		one p: Path | p.start = startNode and p.end = endNode and p.t = tree
+	}
+
+	all disj p1, p2 : Path | p1.start = p2.start implies getNumBlack[p1] = getNumBlack[p2]
+}
+
+run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 20 Path
+
+assert allPathLengthsGood {
+	all tree : Tree { 
+		isRedBlackTree[tree] implies no disj d1, d2 : Descent | {
+			// both on the same tree
+			d1.t = tree
+			d2.t = tree
+			// looking for different values
+			d1.val != d2.val
+			// neither one finds their value: we want them to search to a leaf
+			d1.path.last.num != d1.val
+			d2.path.last.num != d2.val
+			// they both contain different number of black nodes
+			#(d1.path.elems.color & Black) != #(d2.path.elems.color & Black)
+		}
+	}
+}
+
+check allPathLengthsGood for 1 Tree, exactly 6 Node, 6 Color, 6 Descent, 0 AddNode
