@@ -169,15 +169,17 @@ sig AddNode extends Event {
 pred testadd {
 	some a: AddNode | {
 		isBSTree[a.pre]
+		isBSTree[a.post]
     	a.pre != a.post
     	some a.pre.nodes
 	}
 }
 run testadd for exactly 6 Node, 4 seq, 1 AddNode, 0 RemoveNode, 1 Descent, 2 Tree
 
-assert addpreserves {
+assert addlength {
 	all a: AddNode | {
-    isBSTree[a.pre] implies isBSTree[a.post]
+		a.finding.path.last.num != a.toadd implies
+    	#(a.pre.nodes) = sub[#(a.post.nodes), 1]
   }
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
@@ -217,15 +219,17 @@ sig RemoveNode extends Event {
 pred testremove {
 	some r: RemoveNode | {
 		isBSTree[r.pre]
+		isBSTree[r.post]
     	r.pre.nodes != r.post.nodes
     	some r.pre.nodes
 	}
 }
 run testremove for exactly 2 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
 
-assert removepreserves {
+assert removelength {
 	all r: RemoveNode | {
-    isBSTree[r.pre] implies isBSTree[r.post]
+		r.finding.path.last.num != r.toremove implies
+    	#(r.pre.nodes) = add[#(r.post.nodes), 1]
   }
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
