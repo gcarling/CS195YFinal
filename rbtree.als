@@ -1,4 +1,4 @@
-open btree
+open btree2
 
 abstract sig Color {}
 sig Red extends Color {}
@@ -62,7 +62,16 @@ pred isRedBlackTree[tree: Tree] {
 	all disj p1, p2 : Path | p1.start = p2.start implies getNumBlack[p1] = getNumBlack[p2]
 }
 
-run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 20 Path, 0 Event
+run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 12 Path, 0 Event
+
+pred testaddrb {
+	some a: AddNode | {
+		isRedBlackTree[a.pre]
+    	a.pre != a.post
+    	some a.pre.nodes
+	}
+}
+run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 12 Path, exactly 1 Event
 
 assert allPathLengthsGood {
 	all tree : Tree { 
