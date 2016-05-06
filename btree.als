@@ -6,6 +6,7 @@ sig Tree {
     lefts, rights: nodes -> lone nodes
 } {
 	some nodes implies some root
+	all n : nodes | this in n.trees
 }
 
 run {some Tree} for 3 but 1 Tree
@@ -22,16 +23,14 @@ fact allNodesInSomeTree {
 }*/
 
 
-
 sig Node {
+  trees: set Tree,	
   num: Int,
-  left: lone Node,
-  right: lone Node
-}
-fact correctChildren {
-	all n: Node |
-		n.left = Tree.lefts[n] and
-		n.right = Tree.rights[n]
+  left: set Node,
+  right: set Node
+} {
+	left = trees.lefts[this] and
+	right = trees.rights[this]
 }
 
 
