@@ -253,7 +253,7 @@ pred testremove {
     	some r.pre.nodes
 	}
 }
-run testremove for exactly 2 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
+run testremove for exactly 6 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
 
 assert removepreserves {
 	all r: RemoveNode | {
