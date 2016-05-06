@@ -17,23 +17,23 @@ fact allNodesInSomeTree {
 }
 
 
-sig Node {
+/*sig Node {
   num: Int
-}
+}*/
 
 
-/*
+
 sig Node {
   num: Int,
-  left: Node,
-  right: Node
+  left: lone Node,
+  right: lone Node
 }
 fact correctChildren {
 	all n: Node |
 		n.left = Tree.lefts[n] and
 		n.right = Tree.rights[n]
 }
-*/
+
 
 fact NodesUnique {
 	all disj n1, n2: Node | n1.num != n2.num
