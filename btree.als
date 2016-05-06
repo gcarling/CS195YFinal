@@ -1,7 +1,7 @@
 // March 4th
 
 sig Tree {  
-  nodes: set Node,
+	nodes: set Node,
 	root: lone nodes,
     lefts, rights: nodes -> lone nodes
 } {
@@ -16,15 +16,30 @@ fact allNodesInSomeTree {
 			n in t.nodes		
 }
 
+
 sig Node {
   num: Int
 }
+
+
+/*
+sig Node {
+  num: Int,
+  left: Node,
+  right: Node
+}
+fact correctChildren {
+	all n: Node |
+		n.left = Tree.lefts[n] and
+		n.right = Tree.rights[n]
+}
+*/
 
 fact NodesUnique {
 	all disj n1, n2: Node | n1.num != n2.num
 }
 
-run {} for 2 Tree, 6 Node
+run {} for 1 Tree, 6 Node, 0 Descent, 0 Event
 
 pred isBTree[t: Tree] {
 	// root reaches everything
@@ -42,7 +57,7 @@ pred isBTree[t: Tree] {
   }
 }
 
-run isBTree for exactly 8 Node, 1 Tree, 0 Descent
+run isBTree for exactly 8 Node, 1 Tree, 0 Descent, 0 Event
 
 // search tree, so no worries about equal
 pred isOrderedTree[t: Tree] {
@@ -61,11 +76,11 @@ pred testIsBSTree {
 		isBSTree[t1] and isBSTree[t2]
 }
 
-run testIsBSTree for 2 Tree, exactly 8 Node, 1 Descent
+run testIsBSTree for 2 Tree, exactly 8 Node, 1 Descent, 0 Event
 
 sig Descent {
 	t: Tree,
-  val: Int,
+	val: Int,
 	path: seq Node
 } {
 	// start at root
@@ -106,8 +121,8 @@ pred testDescentForNotFound {
 	}
 }
 
-run testDescentForFound for 1 Tree, 10 Node, exactly 1 Descent, 5 seq
-run testDescentForNotFound for 1 Tree, 10 Node, exactly 1 Descent, 5 seq
+run testDescentForFound for 1 Tree, 10 Node, exactly 1 Descent, 5 seq, 0 Event
+run testDescentForNotFound for 1 Tree, 10 Node, exactly 1 Descent, 5 seq, 0 Event
 
 
 pred interestingTree[t: Tree] {
@@ -128,59 +143,58 @@ check findIfThere for 1 Tree, 6 Node, exactly 1 Descent, 4 seq
 
 //////////////////////////////////////////////////
 
-sig AddNode {
-	pre, post: Tree,
-  toadd: Int,
-  finding: Descent
+abstract sig Event {}
+sig AddNode extends Event {
+	pre, post: one Tree,
+	toadd: one Int,
+	finding: one Descent
 }{
-  	
-  no pre.root => 
-  {
-    one post.nodes
-    no post.lefts
-    no post.rights
-    post.nodes.num = toadd
-  } else  {
+  	no pre.root => 
+		{
+    	one post.nodes
+    	no post.lefts
+    	no post.rights
+    	post.nodes.num = toadd
+		}
+	else  {
 		finding.val = toadd
-    finding.t = pre
+    	finding.t = pre
 		pre.root = post.root
     
-    finding.path.last.num = finding.val => 
-    {
-      pre = post // or... pre.lefts = post.lefts ...
-    } else {
-      let lastdata = finding.path.last | 
+    	finding.path.last.num = finding.val => 
+    		{
+      		pre = post // or... pre.lefts = post.lefts ...
+    		}
+		else {
+    		let lastdata = finding.path.last | 
 				some newnode: Node - pre.nodes | { // n = new Node()
 					newnode.num = toadd
 
-         // no unwanted new nodes
-          post.nodes = pre.nodes + newnode      
+        			// no unwanted new nodes
+        			post.nodes = pre.nodes + newnode      
 
-          lastdata.num < toadd implies {
-          	post.rights = pre.rights + (lastdata -> newnode)
+        			lastdata.num < toadd implies {
+        			  	post.rights = pre.rights + (lastdata -> newnode)
 						post.lefts = pre.lefts
-          }
+       				}
 
 					lastdata.num > toadd implies {
-            post.lefts = pre.lefts + (lastdata -> newnode)
+        			    post.lefts = pre.lefts + (lastdata -> newnode)
 						post.rights = pre.rights
-					}           
-
-        }
-    }
-  }
-
-  
+					}
+				}
+		}
+	}
 }
 
 pred testadd {
 	some a: AddNode | {
 		isBSTree[a.pre]
-    a.pre != a.post
-    some a.pre.nodes
-  }
+    	a.pre != a.post
+    	some a.pre.nodes
+	}
 }
-run testadd for exactly 6 Node, 4 seq, 1 AddNode, 1 Descent, 2 Tree
+run testadd for exactly 6 Node, 4 seq, 1 AddNode, 0 RemoveNode, 1 Descent, 2 Tree
 
 assert addpreserves {
 	all a: AddNode | {
@@ -189,4 +203,65 @@ assert addpreserves {
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
 // leaf node we need to add to. Failing to do that will make the property fail.
-check addpreserves for 2 Tree, 1 AddNode, 1 Descent, 5 seq, 4 int, 5 Node
+check addpreserves for 2 Tree, 1 AddNode, 0 RemoveNode, 1 Descent, 5 seq, 4 int, 5 Node
+
+/////////////////
+
+sig RemoveNode extends Event {
+	pre, post: one Tree,
+	toremove: one Int,
+	finding: one Descent
+}{
+  	no pre.root => 
+		{
+    	no post.nodes
+		}
+	else {
+		finding.val = toremove
+    	finding.t = pre
+		pre.root = post.root
+    
+    	finding.path.last.num != finding.val => 
+    		{
+      		pre = post
+    		}
+		else {
+			let penult = finding.path.butlast.last |
+				some oldnode: Node - post.nodes | {
+					oldnode.num = toremove
+
+        			// no unwanted removed nodes
+        			post.nodes = pre.nodes - oldnode      
+
+        			oldnode.num < penult.num implies {
+        			  	post.lefts = pre.lefts - (penult -> oldnode)
+						post.rights = pre.rights
+       				}
+
+					oldnode.num > penult.num implies {
+        		 		post.lefts = pre.lefts 
+						post.rights = pre.rights - (penult -> oldnode)
+					}
+				}
+		}
+	}
+}
+
+pred testremove {
+	some r: RemoveNode | {
+		isBSTree[r.pre]
+    	r.pre != r.post
+    	some r.pre.nodes
+	}
+}
+run testremove for exactly 2 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
+
+assert removepreserves {
+	all r: RemoveNode | {
+    isBSTree[r.pre] implies isBSTree[r.post]
+  }
+}
+// **** Oops: Make sure to give long-enough sequences to actually reach the
+// leaf node we need to add to. Failing to do that will make the property fail.
+check removepreserves for 2 Tree, 1 RemoveNode, 0 AddNode, 1 Descent, 5 seq, 4 int, 5 Node
+
