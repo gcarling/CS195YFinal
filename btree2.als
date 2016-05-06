@@ -184,7 +184,7 @@ assert addlength {
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
 // leaf node we need to add to. Failing to do that will make the property fail.
-check addpreserves for 2 Tree, 1 AddNode, 0 RemoveNode, 1 Descent, 5 seq, 4 int, 5 Node
+check addlength for 2 Tree, 1 AddNode, 0 RemoveNode, 1 Descent, 5 seq, 4 int, 5 Node
 
 /////////////////
 
@@ -228,11 +228,11 @@ run testremove for exactly 2 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Des
 
 assert removelength {
 	all r: RemoveNode | {
-		r.finding.path.last.num != r.toremove implies
+		r.finding.path.last.num = r.toremove implies
     	#(r.pre.nodes) = add[#(r.post.nodes), 1]
   }
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
 // leaf node we need to add to. Failing to do that will make the property fail.
-check removepreserves for 2 Tree, 1 RemoveNode, 0 AddNode, 1 Descent, 5 seq, 4 int, 5 Node
+check removelength for 2 Tree, 1 RemoveNode, 0 AddNode, 1 Descent, 5 seq, 4 int, 5 Node
 
