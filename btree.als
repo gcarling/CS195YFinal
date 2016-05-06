@@ -31,6 +31,7 @@ sig Node {
 } {
 	left = trees.lefts[this] and
 	right = trees.rights[this]
+	trees = nodes.this
 }
 
 
