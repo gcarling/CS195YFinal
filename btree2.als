@@ -128,7 +128,7 @@ assert findIfThere {
 			d.path[d.path.lastIdx].num = d.val else
 			d.path[d.path.lastIdx].num != d.val)
 }
-check findIfThere for 1 Tree, 6 Node, exactly 1 Descent, 4 seq
+check findIfThere for 1 Tree, 6 Node, exactly 1 Descent, 4 seq, 0 Event
 
 //////////////////////////////////////////////////
 
@@ -141,25 +141,20 @@ sig AddNode extends Event {
   	no pre.root => 
 		{
     	one post.nodes
-    	no post.lefts
-    	no post.rights
     	post.nodes.num = toadd
 		}
 	else  {
 		finding.val = toadd
     	finding.t = pre
-		pre.root = post.root
+
     
     	finding.path.last.num = finding.val => 
     		{
       		pre = post // or... pre.lefts = post.lefts ...
     		}
 		else {
-    		let lastdata = finding.path.last | 
 				some newnode: Node - pre.nodes | { // n = new Node()
 					newnode.num = toadd
-
-        			// no unwanted new nodes
         			post.nodes = pre.nodes + newnode      
 				}
 		}
@@ -195,19 +190,18 @@ sig RemoveNode extends Event {
 }{
   	no pre.root => 
 		{
-    	no post.nodes
+    	pre = post
+    	finding.t = pre
 		}
 	else {
 		finding.val = toremove
     	finding.t = pre
-		pre.root = post.root
     
     	finding.path.last.num != finding.val => 
     		{
       		pre = post
     		}
 		else {
-			let penult = finding.path.butlast.last |
 				some oldnode: Node - post.nodes | {
 					oldnode.num = toremove
         			post.nodes = pre.nodes - oldnode      
@@ -224,7 +218,7 @@ pred testremove {
     	some r.pre.nodes
 	}
 }
-run testremove for exactly 2 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
+run testremove for exactly 4 Node, 4 seq, exactly 1 RemoveNode, 0 AddNode, 1 Descent, 2 Tree
 
 assert removelength {
 	all r: RemoveNode | {
