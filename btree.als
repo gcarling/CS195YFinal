@@ -1,5 +1,4 @@
 // March 4th
-// Search for "***" to find the two errors corrected at the end of class.
 
 sig Tree {  
   nodes: set Node,
@@ -127,7 +126,6 @@ assert findIfThere {
 }
 check findIfThere for 1 Tree, 6 Node, exactly 1 Descent, 4 seq
 
-
 //////////////////////////////////////////////////
 
 sig AddNode {
@@ -155,10 +153,7 @@ sig AddNode {
 				some newnode: Node - pre.nodes | { // n = new Node()
 					newnode.num = toadd
 
-          // **** Oops! I missed a frame-condition in class.
-          // Used to have "newnode in post.nodes". That didn't
-          // prevent Alloy from adding additional nodes, which
-          // could be unconnected and thus fail isBTree.
+         // no unwanted new nodes
           post.nodes = pre.nodes + newnode      
 
           lastdata.num < toadd implies {
@@ -194,6 +189,4 @@ assert addpreserves {
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
 // leaf node we need to add to. Failing to do that will make the property fail.
-//  IMPORTANT: the lesson here is that low bounds can sometimes both make you 
-//  *miss* important instances *and* find spurious instances. 
 check addpreserves for 2 Tree, 1 AddNode, 1 Descent, 5 seq, 4 int, 5 Node
