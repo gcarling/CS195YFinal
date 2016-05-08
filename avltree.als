@@ -81,16 +81,28 @@ assert proper_depths {
 	}
 }
 check proper_depths for exactly 1 Tree, 5 Node, 0 Descent, 0 Event
-
 */
 
 pred testaddAVL {
 	some a: AddNode | {
 		isAVLTree[a.pre]
-    	a.pre != a.post
+		isAVLTree[a.post]
+    	#(a.pre.nodes) != #(a.post.nodes)
     	some a.pre.nodes
 	}
 }
-run testaddAVL for exactly 2 Tree, exactly 5 Node, 1 Descent, 1 AddNode, exactly 1 Event
+run testaddAVL for exactly 2 Tree, 9 Node, 1 Descent, 1 AddNode, exactly 1 Event
+
+pred addAVL {
+	some a: AddNode | {
+		isAVLTree[a.pre]
+		}
+}
+run addAVL for exactly 3 Tree, 14 Node, 1 Descent, 1 AddNode, exactly 1 Event
+
+assert AVLinvariant {
+	addAVL implies isAVLTree[a.post]
+}
+check AVLinvariant for 2 Tree, 7 Node, 1 Descent, 1 AddNode, 0 RemoveNode
 
 
