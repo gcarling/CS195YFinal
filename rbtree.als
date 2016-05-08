@@ -1,4 +1,5 @@
-open btree2
+open btree
+open util/ordering[Event] as ord
 
 abstract sig Color {}
 sig Red extends Color {}
@@ -64,14 +65,47 @@ pred isRedBlackTree[tree: Tree] {
 
 run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 12 Path, 0 Event
 
+// check transitions
+fact transitions {
+	all e : Event-ord/last |
+		let e' = e.ord/next | {
+			e.post.nodes.num = e'.pre.nodes.num
+		}
+}
+
 pred testaddrb {
 	some a: AddNode | {
 		isRedBlackTree[a.pre]
+		isRedBlackTree[a.post]
     	a.pre != a.post
     	some a.pre.nodes
 	}
 }
-run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 12 Path, exactly 1 Event
+run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 0 RemoveNode, 12 Path, exactly 1 Event
+
+pred testremoverb {
+	some a: RemoveNode | {
+		isRedBlackTree[a.pre]
+		isRedBlackTree[a.post]
+    	a.pre != a.post
+    	some a.pre.nodes
+	}
+}
+run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNode, 1 RemoveNode, 12 Path, exactly 1 Event
+
+pred testsequence {
+	all e : Event | {
+		isRedBlackTree[e.pre]
+		isRedBlackTree[e.post]
+    	e.pre != e.post
+		some e.pre.nodes
+
+		e in AddNode implies e.toadd not in e.pre.nodes.num
+		e in RemoveNode implies e.toremove in e.pre.nodes.num
+	}
+}
+
+run testsequence for exactly 3 Tree, 15 Node, 15 Color, 4 Descent, 12 Path, exactly 2 Event
 
 assert allPathLengthsGood {
 	all tree : Tree { 
