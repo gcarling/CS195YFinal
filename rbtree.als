@@ -26,8 +26,7 @@ sig Path {
 	  path[idx].num < end.num implies path[idx'] in tree.rights[path[idx]]
 	  path[idx].num = end.num implies no path[idx']
     }
-  }  
-	
+  }
 }
 
 fun getReachableLeaves[n : Node, t: Tree]: set Node {
@@ -122,7 +121,7 @@ pred testaddrb {
     	some a.pre.nodes
 	}
 }
-run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 0 RemoveNode, 12 Path, exactly 1 Event
+run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 0 RemoveNode, 12 Path
 
 pred testremoverb {
 	some a: RemoveNode | {
@@ -132,7 +131,7 @@ pred testremoverb {
     	some a.pre.nodes
 	}
 }
-run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNode, 1 RemoveNode, 12 Path, exactly 1 Event
+run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNode, 1 RemoveNode, 12 Path 
 
 pred testsequence {
 	all e : Event | {
