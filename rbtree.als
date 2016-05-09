@@ -82,7 +82,7 @@ assert allPathLengthsGood {
 		}
 	}
 }
-check allPathLengthsGood for exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 0 Path, 0 Event
+check allPathLengthsGood for exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 7 Path, 0 Event
 
 assert noDoubleLengthDescents {
 	all t : Tree { 
@@ -96,12 +96,12 @@ assert noDoubleLengthDescents {
 			d1.path.last.num != d1.val
 			d2.path.last.num != d2.val
 			// neither is twice the length of the other
-			#(d1.path.elems) <= mul[2, #(d2.path.elems)]
-			#(d2.path.elems) <= mul[2, #(d1.path.elems)]
+			#(d1.path.elems) > mul[2, #(d2.path.elems)]
+			#(d2.path.elems) > mul[2, #(d1.path.elems)]
 		}
 	}
 }
-check noDoubleLengthDescents for exactly 1 Tree, 5 Node, 5 Color, 2 Descent, 0 Path, 0 Event
+check noDoubleLengthDescents for exactly 1 Tree, 5 Node, 5 Color, 2 Descent, 5 Path, 0 Event
 
 ///////////// Events ///////////////////
 

@@ -79,24 +79,24 @@ pred testIsBSTree {
 run testIsBSTree for 2 Tree, exactly 8 Node, 1 Descent, 0 Event
 
 sig Descent {
-	t: Tree,
+	tree: Tree,
 	val: Int,
 	path: seq Node
 } {
 	// start at root
-	path[0] = t.root
+	path[0] = tree.root
 
 	// stop only when found or no ref to follow
 	let l = path[path.lastIdx] | {
-		l.num > val => no l.(t.lefts)
-		l.num < val => no l.(t.rights)
+		l.num > val => no l.(tree.lefts)
+		l.num < val => no l.(tree.rights)
 	}
 	
   // if move down, go in correct direction
   all idx: path.inds - path.lastIdx | {
     let idx' = add[idx, 1] | {
-      path[idx].num > val implies path[idx'] in t.lefts[path[idx]]
-	    path[idx].num < val implies path[idx'] in t.rights[path[idx]]
+      path[idx].num > val implies path[idx'] in tree.lefts[path[idx]]
+	    path[idx].num < val implies path[idx'] in tree.rights[path[idx]]
 			path[idx].num = val implies no path[idx']
     }
   }  
@@ -105,18 +105,18 @@ sig Descent {
 
 pred testDescentForFound {
 	some d: Descent | {
-		isBSTree[d.t]
+		isBSTree[d.tree]
 		d.path[d.path.lastIdx].num = d.val
-		interestingTree[d.t]
+		interestingTree[d.tree]
 		#d.path.elems > 3
 	}
 }
 
 pred testDescentForNotFound {
 	some d: Descent | {
-		isBSTree[d.t]
+		isBSTree[d.tree]
 		d.path[d.path.lastIdx].num != d.val
-		interestingTree[d.t]
+		interestingTree[d.tree]
   	#d.path.elems > 3
 	}
 }
@@ -134,8 +134,8 @@ pred interestingTree[t: Tree] {
 
 assert findIfThere {
 	all d: Descent |
-		isBSTree[d.t] implies
-		(d.val in d.t.nodes.num	=>
+		isBSTree[d.tree] implies
+		(d.val in d.tree.nodes.num	=>
 			d.path[d.path.lastIdx].num = d.val else
 			d.path[d.path.lastIdx].num != d.val)
 }
@@ -157,16 +157,11 @@ sig AddNode extends Event {
 		}
 	else  {
 		finding.val = toadd
-    	finding.t = pre
-
+    	finding.tree = pre
     
     	finding.path.last.num = finding.val => 
-    	{
-      			pre.nodes.num = post.nodes.num
-    	}
-		else {
-				pre.nodes.num + toadd = post.nodes.num
-		}
+			pre.nodes.num = post.nodes.num
+		else pre.nodes.num + toadd = post.nodes.num
 	}
 }
 
@@ -200,19 +195,15 @@ sig RemoveNode extends Event {
   	no pre.root => 
 		{
     	pre = post
-    	finding.t = pre
+    	finding.tree = pre
 		}
 	else {
 		finding.val = toremove
-    	finding.t = pre
+    	finding.tree = pre
     
     	finding.path.last.num != finding.val => 
-    	{
-      			pre.nodes.num = post.nodes.num
-    	}
-		else {
-				post.nodes.num = pre.nodes.num - toremove
-		}
+			pre.nodes.num = post.nodes.num
+		else post.nodes.num = pre.nodes.num - toremove
 	}
 }
 
