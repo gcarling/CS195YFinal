@@ -1,0 +1,28 @@
+﻿We modeled two forms of balanced binary search trees, the Red-Black tree and AVL tree. Each guarantees the ability to search in logarithmic time in the worst case. We checked that all specifications found only trees within the maximum depths expected.
+
+
+Red-black
+
+
+The red-black tree colors all nodes either red or black. To ensure log-depth, it constrains paths from a given node to all leaves accessible from that node to have the same number of black nodes, and further that red nodes can have no red children. In this way, it ensures that no path from root to node is more than twice the length of any other path. We implemented two versions of the red-black tree.
+
+
+The first version checked all paths from a node to its leaves to ensure each one had the same number of blacks. The other version created an “nblacks” relation that kept track of the number of blacks from a node to any leaf in a bottom up manner. At each node, the nblacks fields of its two children are compared to ensure equality. In the latter implementation, we could more easily calculate the depth of each tree to ensure it stayed within expectation, or find instances of different depths. This allowed us to check that for any two paths of length L1 and L2 from a single node to any leaf, L1 <= 2*L2+1. For both versions, we could ensure no path from the root was more than twice the length of another.
+
+
+AVL
+
+
+AVL trees ensure that no two paths from a given node to a leaf have a difference in length of more than one. We specified this by calculating the depth of a given node via the max of its children in a bottom-up fashion, like the second RB tree, and taking the difference of the two to imbue each node with a “balance_factor”. We attempted to test whether this tree has the same L1 <= 2*L2+1 property as RB trees (it should, since there are no low-N counterexamples and in general AVL is more balanced than RB), but we were unable to check for counterexamples in large instances.
+
+
+Comparison
+
+
+The red-black tree in general allows for larger depths than the AVL. There is an instance of an RB tree with depth 5 at only 10 nodes, while no instances of depth 5 exist for AVL trees until 12 nodes. 
+
+
+Limitations
+
+
+Alloy makes it difficult for us to check tree rotations after an insert or remove operation, because after a single tree rotation we must re-check to see if it requires more rotations, and ultimately store new trees.  We also had trouble checking some more complicated cases, especially with assertions, due to how long the checks would take to run.
