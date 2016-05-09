@@ -91,8 +91,8 @@ assert noDoubleLengthDescents {
 			d1.path.last.num != d1.val
 			d2.path.last.num != d2.val
 			// neither is twice the length of the other
-			#(d1.path.elems) <= mul[2, #(d2.path.elems)]
-			#(d2.path.elems) <= mul[2, #(d1.path.elems)]
+			#(d1.path.elems) > mul[2, #(d2.path.elems)]
+			#(d2.path.elems) > mul[2, #(d1.path.elems)]
 		}
 	}
 }

@@ -46,7 +46,7 @@ run isAVLTree for 1 Tree, exactly 5 Node, 0 Descent, 0 Event, 3 Int
 
 ///////////// Depth Checks ///////////////////
 
-assert noExtraLengthDescents {
+assert noDoubleLengthDescents {
 	all t : Tree { 
 		isAVLTree[t] implies no disj d1, d2 : Descent | {
 			// both on the same tree
@@ -58,12 +58,12 @@ assert noExtraLengthDescents {
 			d1.path.last.num != d1.val
 			d2.path.last.num != d2.val
 			// neither is twice the length of the other
-			#(d1.path.elems) < add[1, #(d2.path.elems)]
-			#(d2.path.elems) < add[1, #(d1.path.elems)]
+			#(d1.path.elems) > mul[2, #(d2.path.elems)]
+			#(d2.path.elems) > mul[2, #(d1.path.elems)]
 		}
 	}
 }
-check noExtraLengthDescents for 4 Int, exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 0 Event
+check noDoubleLengthDescents for 4 Int, exactly 1 Tree, 7 Node, 2 Descent, 0 Event
 
 assert logdepthAVL {
 	all t: Tree | {

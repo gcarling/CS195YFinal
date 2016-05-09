@@ -25,8 +25,7 @@ sig Path {
 	  path[idx].num < end.num implies path[idx'] in tree.rights[path[idx]]
 	  path[idx].num = end.num implies no path[idx']
     }
-  }  
-	
+  }
 }
 
 fun getReachableLeaves[n : Node, t: Tree]: set Node {
@@ -83,7 +82,7 @@ assert allPathLengthsGood {
 		}
 	}
 }
-check allPathLengthsGood for exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 0 Path, 0 Event
+check allPathLengthsGood for exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 7 Path, 0 Event
 
 assert noDoubleLengthDescents {
 	all t : Tree | { 
@@ -97,8 +96,8 @@ assert noDoubleLengthDescents {
 			d1.path.last.num != d1.val
 			d2.path.last.num != d2.val
 			// neither is twice the length of the other
-			#(d1.path.elems) <= mul[2, #(d2.path.elems)]
-			#(d2.path.elems) <= mul[2, #(d1.path.elems)]
+			#(d1.path.elems) > mul[2, #(d2.path.elems)]
+			#(d2.path.elems) > mul[2, #(d1.path.elems)]
 		}
 	}
 }
@@ -124,7 +123,7 @@ pred testaddrb {
     	some a.pre.nodes
 	}
 }
-run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 0 RemoveNode, 12 Path, exactly 1 Event
+run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode, 0 RemoveNode, 12 Path
 
 pred testremoverb {
 	some a: RemoveNode | {
@@ -134,4 +133,4 @@ pred testremoverb {
     	some a.pre.nodes
 	}
 }
-run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNode, 1 RemoveNode, 12 Path, exactly 1 Event
+run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNode, 1 RemoveNode, 12 Path
