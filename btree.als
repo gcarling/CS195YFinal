@@ -1,4 +1,4 @@
-// For use with RB trees
+open util/ordering[Event] as ord
 
 sig Tree {  
 	nodes: set Node,
@@ -16,12 +16,6 @@ fact allNodesInSomeTree {
 		one t: Tree | 
 			n in t.nodes		
 }
-
-
-/*sig Node {
-  num: Int
-}*/
-
 
 sig Node {
   tree: one Tree,	
@@ -183,13 +177,13 @@ run testadd for exactly 9 Node, 4 seq, 1 AddNode, 0 RemoveNode, 1 Descent, 2 Tre
 
 assert addlength {
 	all a: AddNode | {
-		a.finding.path.last.num != a.toadd implies
-    	#(a.pre.nodes) = sub[#(a.post.nodes), 1]
+		isBSTree[a.pre] and isBSTree[a.post] and a.pre != a.post implies 
+		(a.finding.path.last.num != a.toadd implies #(a.pre.nodes) = sub[#(a.post.nodes), 1])
   }
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
 // leaf node we need to add to. Failing to do that will make the property fail.
-check addlength for 2 Tree, 1 AddNode, 0 RemoveNode, 1 Descent, 5 seq, 4 int, 5 Node
+check addlength for exactly 2 Tree, 1 AddNode, 0 RemoveNode, 1 Descent, 5 seq, 4 int, exactly 5 Node
 
 /////////////////
 
@@ -228,11 +222,29 @@ run testremove for exactly 9 Node, 4 seq, 0 AddNode, 1 RemoveNode, 1 Descent, 2 
 
 assert removelength {
 	all r: RemoveNode | {
-		r.finding.path.last.num = r.toremove implies
-    	#(r.pre.nodes) = add[#(r.post.nodes), 1]
+		isBSTree[r.pre] and isBSTree[r.post] and r.pre != r.post implies 
+		(r.finding.path.last.num = r.toremove implies #(r.pre.nodes) = add[#(r.post.nodes), 1])
   }
 }
 // **** Oops: Make sure to give long-enough sequences to actually reach the
 // leaf node we need to add to. Failing to do that will make the property fail.
 check removelength for 2 Tree, 1 RemoveNode, 0 AddNode, 1 Descent, 5 seq, 4 int, 5 Node
+
+fact transitions {
+	all e : Event-ord/last |
+		let e' = e.ord/next | {
+			e.post.nodes.num = e'.pre.nodes.num
+		}
+}
+
+pred testsequence {
+	all e : Event | {
+		isBSTree[e.pre]
+		isBSTree[e.post]
+    	e.pre != e.post
+		some e.pre.nodes
+	}
+}
+
+run testsequence for exactly 3 Tree, 15 Node, 4 Descent, exactly 2 Event
 

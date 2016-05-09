@@ -92,6 +92,8 @@ run depth5AVL for 1 Tree, 12 Node, 0 Descent, 0 Event, 5 Int
 
 ///////////// Events ///////////////////
 
+// Like RBTree we ended up not using this stuff but left the code in anyway
+
 pred testaddAVL {
 	one a: AddNode | {
 		isAVLTree[a.pre]

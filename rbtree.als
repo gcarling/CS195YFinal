@@ -1,5 +1,4 @@
 open btree
-open util/ordering[Event] as ord
 
 abstract sig Color {}
 sig Red extends Color {}
@@ -60,7 +59,8 @@ pred isRBTree[t: Tree] {
 		one p: Path | p.start = startNode and p.end = endNode and p.tree = t
 	}
 
-	all disj p1, p2 : Path | p1.start = p2.start implies getNumBlack[p1] = getNumBlack[p2]
+	// all paths from the root to any leaf have the same number of black nodes
+	all disj p1, p2 : Path | p1.start = t.root and p2.start = t.root implies getNumBlack[p1] = getNumBlack[p2]
 }
 
 run isRBTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 12 Path, 0 Event
@@ -68,7 +68,7 @@ run isRBTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 12 Path,
 ///////////// Depth Checks ///////////////////
 
 assert allPathLengthsGood {
-	all t : Tree { 
+	all t : Tree | { 
 		isRBTree[t] implies no disj d1, d2 : Descent | {
 			// both on the same tree
 			d1.tree = t
@@ -86,7 +86,7 @@ assert allPathLengthsGood {
 check allPathLengthsGood for exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 0 Path, 0 Event
 
 assert noDoubleLengthDescents {
-	all t : Tree { 
+	all t : Tree | { 
 		isRBTree[t] implies no disj d1, d2 : Descent | {
 			// both on the same tree
 			d1.tree = t
@@ -102,17 +102,19 @@ assert noDoubleLengthDescents {
 		}
 	}
 }
-check noDoubleLengthDescents for exactly 1 Tree, 5 Node, 5 Color, 2 Descent, 0 Path, 0 Event
+check noDoubleLengthDescents for exactly 1 Tree, 5 Node, 5 Color, 10 Descent, 10 Path, 0 Event
+
+// it should hold that not just from the root down but any node down there are same # of black nodes
+assert allPathsSameNumBlacks {
+		all t : Tree | {
+			isRBTree[t] implies all disj p1, p2 : Path | p1.start = p2.start implies getNumBlack[p1] = getNumBlack[p2]
+		}
+}
+check allPathsSameNumBlacks for exactly 1 Tree, 5 Node, 5 Color, 0 Descent, 10 Path, 0 Event
 
 ///////////// Events ///////////////////
 
-// check transitions
-fact transitions {
-	all e : Event-ord/last |
-		let e' = e.ord/next | {
-			e.post.nodes.num = e'.pre.nodes.num
-		}
-}
+// We didn't end up using this after we bailed on trying to do add/remove for the augmented trees due to the complexity involved with Alloy
 
 pred testaddrb {
 	some a: AddNode | {
@@ -133,17 +135,3 @@ pred testremoverb {
 	}
 }
 run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNode, 1 RemoveNode, 12 Path, exactly 1 Event
-
-pred testsequence {
-	all e : Event | {
-		isRBTree[e.pre]
-		isRBTree[e.post]
-    	e.pre != e.post
-		some e.pre.nodes
-
-		e in AddNode implies e.toadd not in e.pre.nodes.num
-		e in RemoveNode implies e.toremove in e.pre.nodes.num
-	}
-}
-
-run testsequence for exactly 3 Tree, 15 Node, 15 Color, 4 Descent, 12 Path, exactly 2 Event

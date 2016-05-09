@@ -9,7 +9,9 @@ sig RBNode extends Node {
 	nblacks: Int,
 	depth: Int
 }
+
 fact countblacks {
+	// We know that if a node is missing at least one child then it can have no more blacks below it, otherwise the invariant is broken
 	all n: RBNode |
 		(no n.left or no n.right) => {
 			n.color in Black =>
@@ -24,6 +26,7 @@ fact countblacks {
 				n.nblacks = n.left.nblacks
 		}
 }
+
 fact definedepth {
 	all n : RBNode | {
 		(no n.left and no n.right) implies n.depth = 1
@@ -54,7 +57,7 @@ pred isRBTree[tree: Tree] {
 	// if a node is red, its children are black
 	all n : tree.nodes | n.color in Red implies n.(tree.lefts + tree.rights).color in Black
 	
-	// for every node, there is a path from itself to every leaf that it can reach
+	// confirm that number of blacks is always the same
 	all n: tree.nodes | {
 		(no n.left and some n.right) implies n.right.nblacks = 0
 		(some n.left and no n.right) implies n.left.nblacks = 0
