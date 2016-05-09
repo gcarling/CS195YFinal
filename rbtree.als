@@ -10,7 +10,7 @@ sig RBNode extends Node {
 }
 
 sig Path {
-	t: Tree,
+	tree: Tree,
 	start: Node,
 	end: Node,
 	path: seq Node
@@ -22,48 +22,89 @@ sig Path {
   // if move down, go in correct direction
   all idx: path.inds - path.lastIdx | {
     let idx' = add[idx, 1] | {
-      path[idx].num > end.num implies path[idx'] in t.lefts[path[idx]]
-	  path[idx].num < end.num implies path[idx'] in t.rights[path[idx]]
+      path[idx].num > end.num implies path[idx'] in tree.lefts[path[idx]]
+	  path[idx].num < end.num implies path[idx'] in tree.rights[path[idx]]
 	  path[idx].num = end.num implies no path[idx']
     }
   }  
 	
 }
 
-fun getReachableLeaves[n : Node, tree: Tree]: set Node {
+fun getReachableLeaves[n : Node, t: Tree]: set Node {
 	// get reachable nodes, intersect with nodes that have no left + nodes that have no right
-	n.*(tree.lefts + tree.rights) & ((tree.nodes - tree.lefts.(tree.nodes)) + (tree.nodes - tree.rights.(tree.nodes)))
+	n.*(t.lefts + t.rights) & ((t.nodes - t.lefts.(t.nodes)) + (t.nodes - t.rights.(t.nodes)))
 }
 
 fun getNumBlack[p : Path]: Int {
 	#(p.path.elems.color & Black)
 }
 
-pred isRedBlackTree[tree: Tree] {
+pred isRBTree[t: Tree] {
 	// has all the properties of a BST
-	isBSTree[tree]
+	isBSTree[t]
 
 	// for convenience, we want all nodes to have their own color sig
-	no disj n1, n2 : tree.nodes | n1.color = n2.color
+	no disj n1, n2 : t.nodes | n1.color = n2.color
 
 	// all nodes are either red or black
-	all n : tree.nodes | n in RBNode
+	all n : t.nodes | n in RBNode
 
 	// root is black
-	no tree.root or tree.root.color in Black
+	no t.root or t.root.color in Black
 
 	// if a node is red, its children are black
-	all n : tree.nodes | n.color in Red implies n.(tree.lefts + tree.rights).color in Black
+	all n : t.nodes | n.color in Red implies n.(t.lefts + t.rights).color in Black
 	
 	// for every node, there is a path from itself to every leaf that it can reach
-	all startNode : tree.nodes | all endNode : getReachableLeaves[startNode, tree] | {
-		one p: Path | p.start = startNode and p.end = endNode and p.t = tree
+	all startNode : t.nodes | all endNode : getReachableLeaves[startNode, t] | {
+		one p: Path | p.start = startNode and p.end = endNode and p.tree = t
 	}
 
 	all disj p1, p2 : Path | p1.start = p2.start implies getNumBlack[p1] = getNumBlack[p2]
 }
 
-run isRedBlackTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 12 Path, 0 Event
+run isRBTree for 1 Tree, exactly 7 Node, 7 Color, 0 Descent, 0 AddNode, 12 Path, 0 Event
+
+///////////// Depth Checks ///////////////////
+
+assert allPathLengthsGood {
+	all t : Tree { 
+		isRBTree[t] implies no disj d1, d2 : Descent | {
+			// both on the same tree
+			d1.tree = t
+			d2.tree = t
+			// looking for different values
+			d1.val != d2.val
+			// neither one finds their value: we want them to search to a leaf
+			d1.path.last.num != d1.val
+			d2.path.last.num != d2.val
+			// they both contain different number of black nodes
+			#(d1.path.elems.color & Black) != #(d2.path.elems.color & Black)
+		}
+	}
+}
+check allPathLengthsGood for exactly 1 Tree, 7 Node, 7 Color, 2 Descent, 0 Path, 0 Event
+
+assert noDoubleLengthDescents {
+	all t : Tree { 
+		isRBTree[t] implies no disj d1, d2 : Descent | {
+			// both on the same tree
+			d1.tree = t
+			d2.tree = t
+			// looking for different values
+			d1.val != d2.val
+			// neither one finds their value: we want them to search to a leaf
+			d1.path.last.num != d1.val
+			d2.path.last.num != d2.val
+			// neither is twice the length of the other
+			#(d1.path.elems) <= mul[2, #(d2.path.elems)]
+			#(d2.path.elems) <= mul[2, #(d1.path.elems)]
+		}
+	}
+}
+check noDoubleLengthDescents for exactly 1 Tree, 5 Node, 5 Color, 2 Descent, 0 Path, 0 Event
+
+///////////// Events ///////////////////
 
 // check transitions
 fact transitions {
@@ -75,8 +116,8 @@ fact transitions {
 
 pred testaddrb {
 	some a: AddNode | {
-		isRedBlackTree[a.pre]
-		isRedBlackTree[a.post]
+		isRBTree[a.pre]
+		isRBTree[a.post]
     	a.pre != a.post
     	some a.pre.nodes
 	}
@@ -85,8 +126,8 @@ run testaddrb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 1 AddNode,
 
 pred testremoverb {
 	some a: RemoveNode | {
-		isRedBlackTree[a.pre]
-		isRedBlackTree[a.post]
+		isRBTree[a.pre]
+		isRBTree[a.post]
     	a.pre != a.post
     	some a.pre.nodes
 	}
@@ -95,8 +136,8 @@ run testremoverb for exactly 2 Tree, exactly 7 Node, 7 Color, 1 Descent, 0 AddNo
 
 pred testsequence {
 	all e : Event | {
-		isRedBlackTree[e.pre]
-		isRedBlackTree[e.post]
+		isRBTree[e.pre]
+		isRBTree[e.post]
     	e.pre != e.post
 		some e.pre.nodes
 
@@ -106,22 +147,3 @@ pred testsequence {
 }
 
 run testsequence for exactly 3 Tree, 15 Node, 15 Color, 4 Descent, 12 Path, exactly 2 Event
-
-assert allPathLengthsGood {
-	all tree : Tree { 
-		isRedBlackTree[tree] implies no disj d1, d2 : Descent | {
-			// both on the same tree
-			d1.t = tree
-			d2.t = tree
-			// looking for different values
-			d1.val != d2.val
-			// neither one finds their value: we want them to search to a leaf
-			d1.path.last.num != d1.val
-			d2.path.last.num != d2.val
-			// they both contain different number of black nodes
-			#(d1.path.elems.color & Black) != #(d2.path.elems.color & Black)
-		}
-	}
-}
-
-check allPathLengthsGood for 1 Tree, exactly 5 Node, 5 Color, 6 Descent, 0 AddNode, 6 Path, 0 Event
